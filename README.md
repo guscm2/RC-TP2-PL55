@@ -66,6 +66,30 @@ sudo python3 sniffer/sniffer.py -v
 ```
 .
 ├── sniffer/
-│   └── sniffer.py   # main capture and display logic
+│   ├── main.py
+│   ├── core/
+│   │   ├── captura.py        # packet capture thread (Scapy)
+│   │   ├── filter.py         # BPF filter validation
+│   │   └── packet_parser.py  # raw packet → dict
+│   └── ui/
+│       ├── ui.py             # Textual App entry point
+│       ├── screens/
+│       │   └── main_screen.py
+│       └── widgets/
+│           ├── filter_bar.py   # protocol / IP / MAC filter inputs
+│           ├── packet_table.py # live packet list (DataTable)
+│           └── detail_panel.py # per-packet layer tree
 └── README.md
 ```
+
+---
+
+## To-Do
+
+- [ ] **Wire capture to UI** — start `Captura` in `MainScreen.on_mount`, poll `packet_queue` with `set_interval` and call `PacketTable.add_packet()` on each parsed packet
+- [ ] **Start/stop controls** — keybinding or button to pause and resume capture without exiting
+- [ ] **CSS layout** — style the three panels (filter bar, packet table, detail panel) with a proper split layout using Textual CSS
+- [ ] **BPF filter validation** — fix `core/filter.py` to actually compile and validate the filter string before passing it to Scapy
+- [ ] **Interface selection** — UI widget to pick the network interface at runtime instead of only via CLI flag
+- [ ] **Packet export** — save captured packets to a `.pcap` file (Scapy's `wrpcap`)
+- [ ] **Update README usage section** — reflect the new `main.py` entry point and Textual UI (`sudo python3 sniffer/main.py -i eth0`)
