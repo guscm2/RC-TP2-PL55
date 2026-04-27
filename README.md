@@ -10,9 +10,11 @@ Network packet sniffer built with Python and Scapy for the Computer Networks cou
 
 - Python 3.8+
 - [Scapy](https://scapy.net/)
+- [Textual](https://github.com/Textualize/textual)
 
 ```bash
-pip install scapy
+make install
+# or manually: pip install scapy textual
 ```
 
 Root/sudo privileges are required to capture raw packets.
@@ -20,6 +22,19 @@ Root/sudo privileges are required to capture raw packets.
 ---
 
 ## Usage
+
+### With Make (recommended)
+
+| Command | Description |
+|---------|-------------|
+| `make run` | Run on default interface (`eth0`) |
+| `make run IFACE=wlan0` | Run on a specific interface |
+| `make run IFACE=eth0 FILTER="tcp port 443"` | Run with a BPF filter |
+| `make install` | Install dependencies |
+| `make check` | Syntax-check all source files |
+| `make clean` | Remove `__pycache__` and `.pyc` files |
+
+### Manually
 
 ```bash
 sudo python3 sniffer/main.py [options]
@@ -31,19 +46,6 @@ sudo python3 sniffer/main.py [options]
 | `-f`, `--filter` | BPF filter string (e.g. `tcp port 80`, `udp`, `icmp`). |
 
 The sniffer launches an interactive **Textual UI** with a live packet table and per-packet detail panel. Use **Ctrl+C** or **q** to quit.
-
-### Examples
-
-```bash
-# Capture all traffic on eth0
-sudo python3 sniffer/main.py -i eth0
-
-# Capture only TCP packets on port 443
-sudo python3 sniffer/main.py -i eth0 -f "tcp port 443"
-
-# Capture UDP traffic on the default interface
-sudo python3 sniffer/main.py -f "udp"
-```
 
 ---
 
@@ -63,6 +65,7 @@ sudo python3 sniffer/main.py -f "udp"
 
 ```
 .
+├── Makefile
 ├── sniffer/
 │   ├── main.py
 │   ├── core/
@@ -84,10 +87,21 @@ sudo python3 sniffer/main.py -f "udp"
 
 ## To-Do
 
+### Benji — Backend / Core Logic
+
 - [ ] **Wire capture to UI** — start `Captura` in `MainScreen.on_mount`, poll `packet_queue` with `set_interval` and call `PacketTable.add_packet()` on each parsed packet
-- [ ] **Start/stop controls** — keybinding or button to pause and resume capture without exiting
-- [ ] **CSS layout** — style the three panels (filter bar, packet table, detail panel) with a proper split layout using Textual CSS
 - [ ] **BPF filter validation** — fix `core/filter.py` to actually compile and validate the filter string before passing it to Scapy
-- [ ] **Interface selection** — UI widget to pick the network interface at runtime instead of only via CLI flag
 - [ ] **Packet export** — save captured packets to a `.pcap` file (Scapy's `wrpcap`)
+
+### Barney — UI / Frontend
+
+- [ ] **CSS layout** — style the three panels (filter bar, packet table, detail panel) with a proper split layout using Textual CSS
+- [ ] **Start/stop controls** — keybinding or button to pause and resume capture without exiting
+
+### Bowler — Mixed
+
+- [ ] **Interface selection** — UI widget to pick the network interface at runtime instead of only via CLI flag
+
+### Done
+
 - [x] **Update README usage section** — reflect the new `main.py` entry point and Textual UI (`sudo python3 sniffer/main.py -i eth0`)
