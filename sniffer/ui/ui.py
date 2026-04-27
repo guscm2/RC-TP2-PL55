@@ -3,7 +3,7 @@ from textual.app import App
 from ui.screens.main_screen import MainScreen
 
 class SnifferApp(App):
-    CSS_PATH = None
+    CSS_PATH = "sniffer.tcss"
     TITLE = "Packet Sniffer"
 
     def __init__(self, packet_queue: queue.Queue, iface=None, bpf_filter="", **kwargs):

@@ -1,0 +1,12 @@
+FilterBar {
+    height: 3;
+    dock: top;
+}
+
+PacketTable {
+    height: 60%;
+}
+
+DetailPanel {
+    height: 1fr;
+}

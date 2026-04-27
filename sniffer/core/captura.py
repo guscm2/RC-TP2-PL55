@@ -18,10 +18,13 @@ class Captura:
         self.stop_event.set()
 
     def _run(self):
-        sniff(
-            iface=self.iface,
-            filter=self.bpf_filter,
-            prn=lambda pkt: self.packet_queue.put(pkt),
-            stop_filter=lambda _: self.stop_event.is_set(),
-            store=False,
-        )
+        try:
+            sniff(
+                iface=self.iface,
+                filter=self.bpf_filter or None,
+                prn=lambda pkt: self.packet_queue.put(pkt),
+                stop_filter=lambda _: self.stop_event.is_set(),
+                store=False,
+            )
+        except Exception as e:
+            self.packet_queue.put(RuntimeError(f"Captura failed: {e}"))

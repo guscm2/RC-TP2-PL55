@@ -2,16 +2,16 @@ PYTHON   := python3
 SNIFFER  := sniffer/main.py
 SRC      := sniffer
 
-IFACE    ?= eth0
 FILTER   ?=
 
 .PHONY: run install check clean
 
 run:
-	sudo $(PYTHON) $(SNIFFER) -i $(IFACE) $(if $(FILTER),-f "$(FILTER)")
+	sudo $(PYTHON) $(SNIFFER) 
 
 install:
-	pip install scapy textual --break-system-packages
+	pip install scapy textual
+	sudo pip install scapy textual
 
 check:
 	$(PYTHON) -m py_compile \
@@ -27,5 +27,5 @@ check:
 	@echo "All files OK"
 
 clean:
-	find $(SRC) -type d -name __pycache__ -exec rm -rf {} +
-	find $(SRC) -name "*.pyc" -delete
+	sudo find $(SRC) -type d -name __pycache__ -exec rm -rf {} +
+	sudo find $(SRC) -name "*.pyc" -delete

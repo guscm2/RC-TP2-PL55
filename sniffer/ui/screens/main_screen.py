@@ -36,8 +36,14 @@ class MainScreen(Screen):
         try:
             while True:
                 raw = self.app.packet_queue.get_nowait()
-                table.add_packet(parse_packet(raw, self._packet_index))
-                self._packet_index += 1
+                if isinstance(raw, RuntimeError):
+                    self.app.exit(message=str(raw))
+                    return
+                try:
+                    table.add_packet(parse_packet(raw, self._packet_index))
+                    self._packet_index += 1
+                except Exception as e:
+                    self.app.log.error(f"parse error: {e}")
         except queue.Empty:
             pass
 

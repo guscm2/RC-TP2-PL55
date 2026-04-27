@@ -51,13 +51,15 @@ The sniffer launches an interactive **Textual UI** with a live packet table and 
 
 ## Current Features
 
+- Interactive Textual TUI with live packet table and per-packet detail panel
 - Color-coded protocol display: TCP, UDP, ICMP, ARP, DNS, HTTP
 - Source/destination IP and port
 - TCP flag decoding (SYN, ACK, FIN, RST, PSH, URG)
 - DNS query name extraction
 - HTTP method, host and path extraction
-- Per-protocol packet count bar chart on exit
 - BPF filter support via Scapy
+- Protocol / IP / MAC filter bar
+- Split layout: filter bar, packet table, detail panel
 
 ---
 
@@ -74,6 +76,7 @@ The sniffer launches an interactive **Textual UI** with a live packet table and 
 │   │   └── packet_parser.py  # raw packet → dict
 │   └── ui/
 │       ├── ui.py             # Textual App entry point
+│       ├── sniffer.tcss      # layout and styling
 │       ├── screens/
 │       │   └── main_screen.py
 │       └── widgets/
@@ -89,13 +92,13 @@ The sniffer launches an interactive **Textual UI** with a live packet table and 
 
 ### Benji — Backend / Core Logic
 
-- [ ] **Wire capture to UI** — start `Captura` in `MainScreen.on_mount`, poll `packet_queue` with `set_interval` and call `PacketTable.add_packet()` on each parsed packet
+- [x] **Wire capture to UI** — start `Captura` in `MainScreen.on_mount`, poll `packet_queue` with `set_interval` and call `PacketTable.add_packet()` on each parsed packet
 - [ ] **BPF filter validation** — fix `core/filter.py` to actually compile and validate the filter string before passing it to Scapy
 - [ ] **Packet export** — save captured packets to a `.pcap` file (Scapy's `wrpcap`)
 
 ### Barney — UI / Frontend
 
-- [ ] **CSS layout** — style the three panels (filter bar, packet table, detail panel) with a proper split layout using Textual CSS
+- [x] **CSS layout** — style the three panels (filter bar, packet table, detail panel) with a proper split layout using Textual CSS
 - [ ] **Start/stop controls** — keybinding or button to pause and resume capture without exiting
 
 ### Bowler — Mixed
@@ -104,4 +107,6 @@ The sniffer launches an interactive **Textual UI** with a live packet table and 
 
 ### Done
 
+- [x] **Wire capture to UI**
+- [x] **CSS layout**
 - [x] **Update README usage section** — reflect the new `main.py` entry point and Textual UI (`sudo python3 sniffer/main.py -i eth0`)
