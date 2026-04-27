@@ -22,29 +22,27 @@ Root/sudo privileges are required to capture raw packets.
 ## Usage
 
 ```bash
-sudo python3 sniffer/sniffer.py [options]
+sudo python3 sniffer/main.py [options]
 ```
 
 | Option | Description |
 |--------|-------------|
 | `-i`, `--iface` | Network interface to listen on (e.g. `eth0`, `wlan0`). Defaults to the system default. |
-| `-c`, `--count` | Number of packets to capture. `0` = unlimited (default). |
 | `-f`, `--filter` | BPF filter string (e.g. `tcp port 80`, `udp`, `icmp`). |
-| `-v`, `--verbose` | Print raw payload (up to 200 bytes) for each packet. |
 
-Press **Ctrl+C** to stop capture and print a summary.
+The sniffer launches an interactive **Textual UI** with a live packet table and per-packet detail panel. Use **Ctrl+C** or **q** to quit.
 
 ### Examples
 
 ```bash
 # Capture all traffic on eth0
-sudo python3 sniffer/sniffer.py -i eth0
+sudo python3 sniffer/main.py -i eth0
 
-# Capture 100 TCP packets on port 443
-sudo python3 sniffer/sniffer.py -i eth0 -c 100 -f "tcp port 443"
+# Capture only TCP packets on port 443
+sudo python3 sniffer/main.py -i eth0 -f "tcp port 443"
 
-# Show raw payload
-sudo python3 sniffer/sniffer.py -v
+# Capture UDP traffic on the default interface
+sudo python3 sniffer/main.py -f "udp"
 ```
 
 ---
@@ -92,4 +90,4 @@ sudo python3 sniffer/sniffer.py -v
 - [ ] **BPF filter validation** — fix `core/filter.py` to actually compile and validate the filter string before passing it to Scapy
 - [ ] **Interface selection** — UI widget to pick the network interface at runtime instead of only via CLI flag
 - [ ] **Packet export** — save captured packets to a `.pcap` file (Scapy's `wrpcap`)
-- [ ] **Update README usage section** — reflect the new `main.py` entry point and Textual UI (`sudo python3 sniffer/main.py -i eth0`)
+- [x] **Update README usage section** — reflect the new `main.py` entry point and Textual UI (`sudo python3 sniffer/main.py -i eth0`)
