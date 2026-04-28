@@ -52,14 +52,18 @@ The sniffer launches an interactive **Textual UI** with a live packet table and 
 ## Current Features
 
 - Interactive Textual TUI with live packet table and per-packet detail panel
-- Color-coded protocol display: TCP, UDP, ICMP, ARP, DNS, HTTP
-- Source/destination IP and port
+- Split layout: filter bar, packet table, detail panel
+- Color-coded protocol display: TCP, UDP, ICMP, ARP, DNS, HTTP, IPv4, IPv6
+- Protocol detection ordering: ARP > HTTP > DNS > ICMP > TCP > UDP > IPv4/IPv6
+- Source/destination IP and port; IPv6 src/dst shown correctly
 - TCP flag decoding (SYN, ACK, FIN, RST, PSH, URG)
 - DNS query name extraction
 - HTTP method, host and path extraction
-- BPF filter support via Scapy
-- Protocol / IP / MAC filter bar
-- Split layout: filter bar, packet table, detail panel
+- Unified single-input filter bar — one field matches protocol, IP, or MAC (case-insensitive substring); separate BPF expression input with an Apply button
+- Debounced filter with 250 ms delay so typing stays responsive during live capture
+- Display capped at the 500 most recent matching packets
+- BPF filter validation at startup via `tcpdump -d`; per-packet BPF matching via libpcap offline filtering (`pcap_offline_filter`)
+- BPF filter can be updated at runtime from the UI; capture thread restarts with the new kernel-level filter
 
 ---
 
@@ -80,7 +84,7 @@ The sniffer launches an interactive **Textual UI** with a live packet table and 
 │       ├── screens/
 │       │   └── main_screen.py
 │       └── widgets/
-│           ├── filter_bar.py   # protocol / IP / MAC filter inputs
+│           ├── filter_bar.py   # unified filter input (protocol / IP / MAC) + BPF input
 │           ├── packet_table.py # live packet list (DataTable)
 │           └── detail_panel.py # per-packet layer tree
 └── README.md

@@ -1,14 +1,16 @@
-from scapy.all import IP, TCP, DNS, UDP, ICMP, ARP, Raw, Ether
+from scapy.all import IP, IPv6, TCP, DNS, UDP, ICMP, ARP, Raw, Ether
 from scapy.layers.http import HTTPRequest, HTTPResponse
 from datetime import datetime
 
 def get_proto(pkt) -> str:
-    if pkt.haslayer(DNS): return "DNS"
-    if pkt.haslayer(TCP): return "TCP"
-    if pkt.haslayer(UDP): return "UDP"
-    if pkt.haslayer(ICMP): return "ICMP"
     if pkt.haslayer(ARP): return "ARP"
     if pkt.haslayer(HTTPRequest) or pkt.haslayer(HTTPResponse): return "HTTP"
+    if pkt.haslayer(DNS): return "DNS"
+    if pkt.haslayer(ICMP): return "ICMP"
+    if pkt.haslayer(TCP): return "TCP"
+    if pkt.haslayer(UDP): return "UDP"
+    if pkt.haslayer(IP): return "IPv4"
+    if pkt.haslayer(IPv6): return "IPv6"
     return "OTHER"
 
 def format_size(n: int) -> str:
@@ -23,6 +25,10 @@ def parse_packet(pkt, index: int) -> dict:
         sport = dport = ""
     elif pkt.haslayer(IP):
         src, dst = pkt[IP].src, pkt[IP].dst
+        sport = f":{pkt.sport}" if hasattr(pkt, "sport") else ""
+        dport = f":{pkt.dport}" if hasattr(pkt, "dport") else ""
+    elif pkt.haslayer(IPv6):
+        src, dst = pkt[IPv6].src, pkt[IPv6].dst
         sport = f":{pkt.sport}" if hasattr(pkt, "sport") else ""
         dport = f":{pkt.dport}" if hasattr(pkt, "dport") else ""
     else:

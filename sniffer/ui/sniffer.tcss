@@ -3,6 +3,31 @@ FilterBar {
     dock: top;
 }
 
+FilterBar Horizontal {
+    height: 3;
+}
+
+FilterBar #proto-select {
+    width: 10;
+}
+
+FilterBar #ip-input {
+    width: 20;
+}
+
+FilterBar #mac-input {
+    width: 20;
+}
+
+FilterBar #bpf-input {
+    width: 1fr;
+}
+
+FilterBar #bpf-apply {
+    width: 14;
+    min-width: 14;
+}
+
 PacketTable {
     height: 60%;
 }
