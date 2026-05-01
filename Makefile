@@ -2,12 +2,13 @@ PYTHON   := python3
 SNIFFER  := sniffer/main.py
 SRC      := sniffer
 
+IFACE    ?=
 FILTER   ?=
 
 .PHONY: run install check clean
 
 run:
-	sudo $(PYTHON) $(SNIFFER) 
+	sudo $(PYTHON) $(SNIFFER) $(if $(IFACE),-i $(IFACE),) $(if $(FILTER),-f "$(FILTER)",)
 
 install:
 	pip install scapy textual
