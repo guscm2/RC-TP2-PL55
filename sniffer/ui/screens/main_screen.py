@@ -14,8 +14,8 @@ from ui.widgets.detail_panel import DetailPanel
 
 
 class MainScreen(Screen):
-    BINDINGS = [("e", "export_pcap", "Export PCAP")]
     BINDINGS = [
+        ("e", "export_pcap", "Export PCAP"),
         ("p", "toggle_pause", "Pause/Resume"),
     ]
 
