@@ -59,7 +59,6 @@ class MainScreen(Screen):
     def on_mount(self) -> None:
         self._packet_index = 0
         self._active_bpf = self.app.bpf_filter or ""
-        self._is_paused = False
         self._captura = Captura(
             self.app.packet_queue,
             iface=self.app.iface,
@@ -105,9 +104,8 @@ class MainScreen(Screen):
         self.notify(f"Exported {len(packets)} packets to {filename}")
 
     def _restart_capture(self, bpf: str) -> None:
-        """Stop the current capture thread and start a new one with *bpf*."""
+        was_paused = self._captura.is_paused()
         self._captura.stop()
-        # Drain the old queue so stale packets don't leak into the new session
         while not self.app.packet_queue.empty():
             try:
                 self.app.packet_queue.get_nowait()
@@ -120,25 +118,19 @@ class MainScreen(Screen):
             bpf_filter=bpf or None,
         )
         self._captura.start()
+        if was_paused:
+            self._captura.pause()
     # ------------------------------------------------------------------
     # Pause/Resume controls
     # ------------------------------------------------------------------
 
     def action_toggle_pause(self) -> None:
-        """Toggle between paused and capturing states."""
-        print(f"[DEBUG] action_toggle_pause called. Currently paused: {self._is_paused}")
-        if self._is_paused:
-            print("[DEBUG] Resuming capture")
+        if self._captura.is_paused():
             self._captura.resume()
-            self._is_paused = False
         else:
-            print("[DEBUG] Pausing capture")
             self._captura.pause()
-            self._is_paused = True
-        print(f"[DEBUG] New state - paused: {self._is_paused}, pause_event set: {self._captura.pause_event.is_set()}")
         self._update_title()
 
     def _update_title(self) -> None:
-        """Update app title to show current capture state."""
-        status = "PAUSED" if self._is_paused else "CAPTURING"
+        status = "PAUSED" if self._captura.is_paused() else "CAPTURING"
         self.app.title = f"Packet Sniffer - {status}"

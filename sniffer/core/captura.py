@@ -16,18 +16,13 @@ class Captura:
 
     def stop(self):
         self.stop_event.set()
+        self.thread.join(timeout=2.0)
 
     def pause(self):
-        """Pause capture (packets are dropped, but sniff loop continues)."""
-        print("[DEBUG] Captura.pause() called")
         self.pause_event.set()
-        print(f"[DEBUG] pause_event is now: {self.pause_event.is_set()}")
 
     def resume(self):
-        """Resume capture (packets are queued again)."""
-        print("[DEBUG] Captura.resume() called")
         self.pause_event.clear()
-        print(f"[DEBUG] pause_event is now: {self.pause_event.is_set()}")
 
     def is_paused(self) -> bool:
         """Check if capture is currently paused."""
@@ -35,13 +30,15 @@ class Captura:
 
     def _run(self):
         try:
-            sniff(
-                iface=self.iface,
-                filter=self.bpf_filter or None,
-                prn=lambda pkt: self._packet_callback(pkt),
-                stop_filter=lambda _: self.stop_event.is_set(),
-                store=False,
-            )
+            while not self.stop_event.is_set():
+                sniff(
+                    iface=self.iface,
+                    filter=self.bpf_filter or None,
+                    prn=self._packet_callback,
+                    stop_filter=lambda _: self.stop_event.is_set(),
+                    store=False,
+                    timeout=0.5,
+                )
         except Exception as e:
             self.packet_queue.put(RuntimeError(f"Captura failed: {e}"))
 
