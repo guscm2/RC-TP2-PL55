@@ -2,7 +2,8 @@ from textual.app import ComposeResult
 from textual.widget import Widget
 from textual.widgets import Input, Button
 from textual.message import Message
-from textual.containers import Horizontal
+from textual.containers import Horizontal, Vertical
+from ui.widgets.interface_selector import InterfaceSelector
 
 
 class FilterBar(Widget):
@@ -13,10 +14,12 @@ class FilterBar(Widget):
             self.bpf   = bpf
 
     def compose(self) -> ComposeResult:
-        with Horizontal():
-            yield Input(placeholder="Filter by protocol, IP or MAC...", id="query-input")
-            yield Input(placeholder="BPF expression (e.g. tcp port 80)", id="bpf-input")
-            yield Button("Apply BPF", id="bpf-apply", variant="primary")
+        with Vertical():
+            yield InterfaceSelector()
+            with Horizontal():
+                yield Input(placeholder="Filter by protocol, IP or MAC...", id="query-input")
+                yield Input(placeholder="BPF expression (e.g. tcp port 80)", id="bpf-input")
+                yield Button("Apply BPF", id="bpf-apply", variant="primary")
 
     def _post_filter(self) -> None:
         query = self.query_one("#query-input", Input).value.strip()

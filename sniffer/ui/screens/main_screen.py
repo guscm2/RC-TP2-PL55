@@ -8,6 +8,7 @@ from textual.widgets import Header, Footer
 from ui.widgets.filter_bar import FilterBar
 from ui.widgets.packet_table import PacketTable
 from ui.widgets.detail_panel import DetailPanel
+from ui.widgets.interface_selector import InterfaceSelector
 
 
 class MainScreen(Screen):
@@ -26,16 +27,20 @@ class MainScreen(Screen):
         table = self.query_one(PacketTable)
         table.apply_filters(event.query, event.bpf)
 
-        # If the BPF expression changed, restart capture with the new kernel filter.
-        # This is more efficient: packets that don't match are dropped by the kernel
-        # before they even reach Python.
         new_bpf = event.bpf.strip()
         if new_bpf != (self._active_bpf or ""):
             ok, err = validate_bpf(new_bpf)
             if ok:
                 self._restart_capture(new_bpf)
-            # If invalid, silently ignore (the per-packet matcher in PacketTable
-            # will also fail gracefully)
+
+    # ------------------------------------------------------------------
+    # Interface selection
+    # ------------------------------------------------------------------
+
+    def on_interface_selector_interface_changed(self, event) -> None:
+        """Reinicia a captura na nova interface selecionada."""
+        self.app.iface = event.iface
+        self._restart_capture(self._active_bpf)
 
     # ------------------------------------------------------------------
     # Packet selection
@@ -87,7 +92,6 @@ class MainScreen(Screen):
     def _restart_capture(self, bpf: str) -> None:
         """Stop the current capture thread and start a new one with *bpf*."""
         self._captura.stop()
-        # Drain the old queue so stale packets don't leak into the new session
         while not self.app.packet_queue.empty():
             try:
                 self.app.packet_queue.get_nowait()
