@@ -89,31 +89,3 @@ The sniffer launches an interactive **Textual UI** with a live packet table and 
 │           └── detail_panel.py # per-packet layer tree
 └── README.md
 ```
-
----
-
-## To-Do
-
-### Benji — Backend / Core Logic
-
-- [x] **Wire capture to UI** — start `Captura` in `MainScreen.on_mount`, poll `packet_queue` with `set_interval` and call `PacketTable.add_packet()` on each parsed packet
-- [x] **BPF filter validation** — fix `core/filter.py` to actually compile and validate the filter string before passing it to Scapy
-- [x] **Packet export** — save captured packets to a `.pcap` file (Scapy's `wrpcap`)
-
-### Barney — UI / Frontend
-
-- [x] **CSS layout** — style the three panels (filter bar, packet table, detail panel) with a proper split layout using Textual CSS
-- [x] **Start/stop controls** — press `p` to pause/resume capture; title bar reflects current state
-
-### Bowler — Mixed
-
-- [ ] **Interface selection** — UI widget to pick the network interface at runtime instead of only via CLI flag
-
-### Done
-
-- [x] **Wire capture to UI**
-- [x] **CSS layout**
-- [x] **Update README usage section** — reflect the new `main.py` entry point and Textual UI (`sudo python3 sniffer/main.py -i eth0`)
-- [x] **BPF filter validation** — implemented in `sniffer/core/filter.py` (uses `tcpdump -d` to compile/validate); wired into `sniffer/main.py` with an early exit on invalid filter
-- [x] **Packet export** — implemented in `sniffer/ui/screens/main_screen.py`; press `e` to export all captured packets to a timestamped `.pcap` file via `wrpcap`
-- [x] **Start/stop controls** — implemented in `sniffer/ui/screens/main_screen.py` and `sniffer/core/captura.py`; press `p` to pause/resume; pause state preserved across BPF filter changes; thread leak fixed via `stop()` join and 0.5 s sniff timeout loop
