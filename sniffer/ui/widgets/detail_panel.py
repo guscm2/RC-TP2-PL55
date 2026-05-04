@@ -1,30 +1,31 @@
 from textual.app import ComposeResult
 from textual.widget import Widget
-from textual.widgets import Tree, Label
-from textual.containers import VerticalScroll
+from textual.widgets import Label, Static
+from textual.containers import Horizontal
+
 
 class DetailPanel(Widget):
     def compose(self) -> ComposeResult:
         yield Label("No packet selected", id="detail-header")
-        with VerticalScroll():
-            yield Tree("Packet", id="detail-tree")
+        yield Horizontal(id="detail-scroll")
 
     def show_packet(self, pkt: dict) -> None:
         self.query_one("#detail-header", Label).update(
             f"#{pkt['index']}  {pkt['proto']}  {pkt['src']} → {pkt['dst']}  {pkt['size']}"
         )
-        tree = self.query_one("#detail-tree", Tree)
-        tree.clear()
-        root = tree.root
-        root.set_label("Packet")
-        root.expand()
+        scroll = self.query_one("#detail-scroll", Horizontal)
+        scroll.remove_children()
 
         for layer in pkt["layers"]:
-            node = root.add(layer["name"], expand=True)
+            lines = [f"[b]{layer['name']}[/b]"]
             for k, v in layer["fields"].items():
-                node.add_leaf(f"{k} = {v}")
+                v_str = v if len(v) <= 36 else v[:33] + "..."
+                lines.append(f"[dim]{k}[/dim] = {v_str}")
+            name_cls = f"layer-{layer['name'].lower()}"
+            scroll.mount(Static("\n".join(lines), classes=f"layer-col {name_cls}"))
 
-        raw_node = root.add("Raw Bytes")
         raw = pkt["raw_bytes"]
-        for i in range(0, min(len(raw), 256), 32):
-            raw_node.add_leaf(raw[i : i + 32])
+        raw_lines = ["[b]Raw Bytes[/b]"]
+        for i in range(0, min(len(raw), 256), 56):
+            raw_lines.append(raw[i : i + 56])
+        scroll.mount(Static("\n".join(raw_lines), classes="layer-col raw-col"))

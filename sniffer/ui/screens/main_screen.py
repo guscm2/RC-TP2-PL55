@@ -7,7 +7,7 @@ from core.packet_parser import parse_packet
 from scapy.all import wrpcap
 from textual.app import ComposeResult
 from textual.screen import Screen
-from textual.widgets import Header, Footer
+from textual.widgets import Header, Footer, Label
 from ui.widgets.filter_bar import FilterBar
 from ui.widgets.packet_table import PacketTable
 from ui.widgets.detail_panel import DetailPanel
@@ -137,5 +137,7 @@ class MainScreen(Screen):
         self._update_title()
 
     def _update_title(self) -> None:
-        status = "PAUSED" if self._captura.is_paused() else "CAPTURING"
-        self.app.title = f"Packet Sniffer - {status}"
+        paused = self._captura.is_paused()
+        self.app.title = f"Packet Sniffer - {'PAUSED' if paused else 'CAPTURING'}"
+        tag = "[yellow]⏸ PAUSED[/yellow]" if paused else "[green]● LIVE[/green]"
+        self.query_one("#capture-status", Label).update(tag)

@@ -1,9 +1,8 @@
 import subprocess
 from textual.app import ComposeResult
 from textual.widget import Widget
-from textual.widgets import Select, Label
+from textual.widgets import Select
 from textual.message import Message
-from textual.containers import Horizontal
 
 
 def _get_interfaces() -> list[str]:
@@ -34,9 +33,7 @@ class InterfaceSelector(Widget):
     def compose(self) -> ComposeResult:
         ifaces = _get_interfaces()
         options = [(iface, iface) for iface in ifaces]
-        with Horizontal():
-            yield Label("Interface: ")
-            yield Select(options, id="iface-select", value=ifaces[0])
+        yield Select(options, id="iface-select", value=ifaces[0])
 
     def on_select_changed(self, event: Select.Changed) -> None:
         if event.select.id == "iface-select" and event.value:

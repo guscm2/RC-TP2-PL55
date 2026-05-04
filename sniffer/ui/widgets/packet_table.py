@@ -30,8 +30,9 @@ class PacketTable(Widget):
 
     def on_mount(self) -> None:
         t = self.query_one(DataTable)
+        widths = {"#": 5, "Time": 14, "Proto": 8, "Src": 24, "Dst": 24, "Flags": 15, "Size": 8}
         for col in self._COLS:
-            t.add_column(col, key=col)
+            t.add_column(col, key=col, width=widths[col])
 
     def add_packet(self, pkt: dict) -> None:
         self._all.append(pkt)

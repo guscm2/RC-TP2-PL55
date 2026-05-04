@@ -7,16 +7,17 @@ FilterBar Horizontal {
     height: 3;
 }
 
-FilterBar #proto-select {
-    width: 10;
+InterfaceSelector {
+    width: 20;
+    min-width: 20;
 }
 
-FilterBar #ip-input {
+InterfaceSelector Select {
     width: 20;
 }
 
-FilterBar #mac-input {
-    width: 20;
+FilterBar #query-input {
+    width: 1fr;
 }
 
 FilterBar #bpf-input {
@@ -34,4 +35,33 @@ PacketTable {
 
 DetailPanel {
     height: 1fr;
+}
+
+DetailPanel #detail-scroll {
+    height: 1fr;
+}
+
+.layer-col {
+    width: 1fr;
+    height: 100%;
+    padding: 0 1;
+    border-right: solid $panel-lighten-1;
+}
+
+.layer-ether {
+    width: 0.6fr;
+}
+
+.layer-ip {
+    width: 0.75fr;
+}
+
+.raw-col {
+    width: 58;
+}
+
+#capture-status {
+    width: 12;
+    min-width: 12;
+    content-align: center middle;
 }
