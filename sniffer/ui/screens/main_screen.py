@@ -1,7 +1,10 @@
+import os
 import queue
+from datetime import datetime
 from core.captura import Captura
 from core.filter import validate_bpf
 from core.packet_parser import parse_packet
+from scapy.all import wrpcap
 from textual.app import ComposeResult
 from textual.screen import Screen
 from textual.widgets import Header, Footer
@@ -12,6 +15,11 @@ from ui.widgets.interface_selector import InterfaceSelector
 
 
 class MainScreen(Screen):
+    BINDINGS = [
+        ("e", "export_pcap", "Export PCAP"),
+        ("p", "toggle_pause", "Pause/Resume"),
+    ]
+
     def compose(self) -> ComposeResult:
         yield Header()
         yield FilterBar()
@@ -63,6 +71,7 @@ class MainScreen(Screen):
         )
         self._captura.start()
         self.set_interval(0.1, self._poll_queue)
+        self._update_title()
 
     def on_unmount(self) -> None:
         self._captura.stop()
@@ -89,8 +98,18 @@ class MainScreen(Screen):
             except Exception as e:
                 self.app.log.error(f"parse error: {e}")
 
+    def action_export_pcap(self) -> None:
+        packets = self.query_one(PacketTable).get_raw_packets()
+        if not packets:
+            self.notify("No packets to export")
+            return
+        os.makedirs("captures", exist_ok=True)
+        filename = os.path.join("captures", f"capture_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pcap")
+        wrpcap(filename, packets)
+        self.notify(f"Exported {len(packets)} packets to {filename}")
+
     def _restart_capture(self, bpf: str) -> None:
-        """Stop the current capture thread and start a new one with *bpf*."""
+        was_paused = self._captura.is_paused()
         self._captura.stop()
         while not self.app.packet_queue.empty():
             try:
@@ -104,3 +123,19 @@ class MainScreen(Screen):
             bpf_filter=bpf or None,
         )
         self._captura.start()
+        if was_paused:
+            self._captura.pause()
+    # ------------------------------------------------------------------
+    # Pause/Resume controls
+    # ------------------------------------------------------------------
+
+    def action_toggle_pause(self) -> None:
+        if self._captura.is_paused():
+            self._captura.resume()
+        else:
+            self._captura.pause()
+        self._update_title()
+
+    def _update_title(self) -> None:
+        status = "PAUSED" if self._captura.is_paused() else "CAPTURING"
+        self.app.title = f"Packet Sniffer - {status}"

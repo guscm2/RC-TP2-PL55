@@ -94,6 +94,9 @@ class PacketTable(Widget):
             key=str(pkt["index"]),
         )
 
+    def get_raw_packets(self) -> list:
+        return [p["raw_pkt"] for p in self._all if p.get("raw_pkt") is not None]
+
     def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
         idx = int(event.row_key.value)
         pkt = next((p for p in self._all if p["index"] == idx), None)
