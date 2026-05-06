@@ -47,6 +47,11 @@ DetailPanel #detail-scroll {
     width: 0.75fr;
 }
 
+.layer-fragment {
+    width: 0.7fr;
+    color: $warning;
+}
+
 .raw-col {
     width: 58;
 }

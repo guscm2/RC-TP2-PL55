@@ -57,6 +57,7 @@ class MainScreen(Screen):
     def on_mount(self) -> None:
         self._packet_index = 0
         self._active_bpf = self.app.bpf_filter or ""
+        self._fragment_groups: dict = {}
         self._stopped = False
         self._mode = self.app.capture_mode
         self._packet_limit = self.app.capture_limit
@@ -91,7 +92,13 @@ class MainScreen(Screen):
                 self.app.exit(message=str(raw))
                 return
             try:
-                table.add_packet(parse_packet(raw, self._packet_index))
+                pkt_data = parse_packet(raw, self._packet_index)
+                fk = pkt_data.get("fragment_key")
+                if fk is not None:
+                    group = self._fragment_groups.setdefault(fk, [])
+                    group.append(self._packet_index)
+                    pkt_data["fragment_siblings"] = group
+                table.add_packet(pkt_data)
                 self._packet_index += 1
             except Exception as e:
                 self.app.log.error(f"parse error: {e}")

@@ -16,8 +16,36 @@ class DetailPanel(Widget):
         scroll = self.query_one("#detail-scroll", Horizontal)
         scroll.remove_children()
 
+        if pkt.get("is_fragment"):
+            offset = pkt.get("fragment_offset", 0)
+            is_last = pkt.get("is_last_fragment", False)
+            proto = pkt.get("fragment_proto") or pkt.get("proto", "Unknown")
+            if offset == 0:
+                position = "first"
+            elif is_last:
+                position = "last"
+            else:
+                position = "middle"
+
+            siblings = pkt.get("fragment_siblings", [])
+            own_idx = pkt["index"]
+            other_frames = [f"#{s}" for s in siblings if s != own_idx]
+
+            frag_lines = [f"[b]Fragment Info[/b]"]
+            frag_lines.append(f"[dim]protocol[/dim] = {proto}")
+            frag_lines.append(f"[dim]position[/dim] = {position}")
+            frag_lines.append(f"[dim]offset[/dim] = {offset} bytes")
+            if other_frames:
+                frag_lines.append(f"[dim]other fragments[/dim] = {', '.join(other_frames)}")
+            else:
+                frag_lines.append("[dim]other fragments[/dim] = (none seen yet)")
+            scroll.mount(Static("\n".join(frag_lines), classes="layer-col layer-fragment"))
+
         for layer in pkt["layers"]:
-            lines = [f"[b]{layer['name']}[/b]"]
+            display_name = layer.get("display_name", layer["name"])
+            if layer["name"] == "Raw" and pkt.get("is_fragment") and pkt.get("fragment_offset", 0) > 0:
+                display_name = f"{pkt.get('fragment_proto') or 'Data'} Fragment Data"
+            lines = [f"[b]{display_name}[/b]"]
             for k, v in layer["fields"].items():
                 v_str = v if len(v) <= 36 else v[:33] + "..."
                 lines.append(f"[dim]{k}[/dim] = {v_str}")

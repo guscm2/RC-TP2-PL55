@@ -12,8 +12,10 @@ def get_proto(pkt) -> str:
     if pkt.haslayer(TCP): return "TCP"
     if pkt.haslayer(UDP): return "UDP"
     if pkt.haslayer(IP):
-        # Non-first fragments lack the transport header; use IP proto field
-        return _IP_PROTO_NAMES.get(pkt[IP].proto, "IPv4")
+        ip = pkt[IP]
+        if bool(ip.flags & 0x1) or ip.frag > 0:
+            return "IPv4"
+        return _IP_PROTO_NAMES.get(ip.proto, "IPv4")
     if pkt.haslayer(IPv6): return "IPv6"
     return "OTHER"
 
@@ -46,12 +48,23 @@ def parse_packet(pkt, index: int) -> dict:
         flag_map = {"F":"FIN","S":"SYN","R":"RST","P":"PSH","A":"ACK","U":"URG"}
         flags = "|".join(v for k, v in flag_map.items() if k in str(f))
 
+    fragment_key = None
+    is_fragment = False
+    fragment_offset = 0
+    is_last_fragment = False
+    fragment_proto = ""
+
     if pkt.haslayer(IP):
         ip = pkt[IP]
         mf = bool(ip.flags & 0x1)
         offset = ip.frag
         if mf or offset > 0:
-            offset_bytes = offset * 8
+            is_fragment = True
+            fragment_offset = offset * 8
+            is_last_fragment = not mf
+            fragment_key = (ip.src, ip.dst, ip.id, ip.proto)
+            fragment_proto = _IP_PROTO_NAMES.get(ip.proto, f"proto={ip.proto}")
+            offset_bytes = fragment_offset
             if offset == 0:
                 frag_flag = "FRAG-FIRST"
             elif mf:
@@ -75,12 +88,20 @@ def parse_packet(pkt, index: int) -> dict:
         except Exception:
             pass
 
+    _LAYER_DISPLAY_NAMES = {"IP": "IPv4"}
+
     layers = []
     current = pkt
     while current:
         layer_name = current.__class__.__name__
-        fields = {k: str(v) for k, v in current.fields.items()}
-        layers.append({"name": layer_name, "fields": fields})
+        display_name = _LAYER_DISPLAY_NAMES.get(layer_name, layer_name)
+        fields = {}
+        for k, v in current.fields.items():
+            try:
+                fields[k] = current.get_field(k).i2repr(current, v)
+            except Exception:
+                fields[k] = str(v)
+        layers.append({"name": layer_name, "display_name": display_name, "fields": fields})
         current = current.payload if current.payload else None
         if isinstance(current, Raw) or current is None:
             break
@@ -91,19 +112,25 @@ def parse_packet(pkt, index: int) -> dict:
     raw_bytes = bytes(pkt).hex()
 
     return {
-        "index":     index,
-        "time":      datetime.now().strftime("%H:%M:%S.%f")[:-3],
-        "proto":     proto,
-        "iface":     iface,
-        "src":       f"{src}{sport}",
-        "dst":       f"{dst}{dport}",
-        "flags":     flags,
-        "extra":     extra,
-        "size":      format_size(size),
-        "size_raw":  size,
-        "src_mac":   src_mac,
-        "dst_mac":   dst_mac,
-        "layers":    layers,
-        "raw_bytes": raw_bytes,
-        "raw_pkt":   pkt,
+        "index":           index,
+        "time":            datetime.now().strftime("%H:%M:%S.%f")[:-3],
+        "proto":           proto,
+        "iface":           iface,
+        "src":             f"{src}{sport}",
+        "dst":             f"{dst}{dport}",
+        "flags":           flags,
+        "extra":           extra,
+        "size":            format_size(size),
+        "size_raw":        size,
+        "src_mac":         src_mac,
+        "dst_mac":         dst_mac,
+        "layers":          layers,
+        "raw_bytes":       raw_bytes,
+        "raw_pkt":         pkt,
+        "is_fragment":      is_fragment,
+        "fragment_key":     fragment_key,
+        "fragment_offset":  fragment_offset,
+        "is_last_fragment": is_last_fragment,
+        "fragment_proto":   fragment_proto,
+        "fragment_siblings": [],  # populated by main_screen after parsing
     }
