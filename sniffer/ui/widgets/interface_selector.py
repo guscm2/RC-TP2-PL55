@@ -7,7 +7,7 @@ from textual.widgets import Select
 from textual.message import Message
 
 
-def _get_interfaces() -> list[str]:
+def get_interfaces() -> list[str]:
     """Devolve lista de interfaces de rede disponíveis no sistema."""
     try:
         result = subprocess.run(
@@ -33,7 +33,7 @@ class InterfaceSelector(Widget):
             self.iface = iface
 
     def compose(self) -> ComposeResult:
-        ifaces = _get_interfaces()
+        ifaces = get_interfaces()
         options = [(iface, iface) for iface in ifaces]
         yield Select(options, id="iface-select", value=ifaces[0])
 

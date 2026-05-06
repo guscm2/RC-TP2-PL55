@@ -2,12 +2,20 @@ from textual.app import ComposeResult
 from textual.screen import Screen
 from textual.widgets import Select, Input, Button, Label, Static
 from textual.containers import Vertical
+from ui.widgets.interface_selector import InterfaceSelector, get_interfaces
 
 
 class SetupScreen(Screen):
+    def __init__(self):
+        super().__init__()
+        ifaces = get_interfaces()
+        self._iface: str = ifaces[0] if ifaces else "eth0"
+
     def compose(self) -> ComposeResult:
         with Vertical(id="setup-box"):
             yield Static("Packet Sniffer", id="setup-title")
+            yield Static("Seleciona a interface de rede:", id="setup-iface-label")
+            yield InterfaceSelector(id="setup-iface")
             yield Static("Seleciona o modo de captura:", id="setup-subtitle")
             yield Select(
                 [("Live capture", "live"), ("Log mode", "log")],
@@ -21,6 +29,9 @@ class SetupScreen(Screen):
     def on_mount(self) -> None:
         self.query_one("#setup-pkt-count", Input).display = False
         self.query_one("#setup-error", Label).display = False
+
+    def on_interface_selector_interface_changed(self, event: InterfaceSelector.InterfaceChanged) -> None:
+        self._iface = event.iface
 
     def on_select_changed(self, event: Select.Changed) -> None:
         if event.select.id == "setup-mode" and event.value:
@@ -46,5 +57,6 @@ class SetupScreen(Screen):
                 return
         self.app.capture_mode = mode
         self.app.capture_limit = packet_limit
+        self.app.capture_iface = self._iface
         from ui.screens.main_screen import MainScreen
         self.app.push_screen(MainScreen())

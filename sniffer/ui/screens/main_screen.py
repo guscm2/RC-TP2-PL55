@@ -62,7 +62,7 @@ class MainScreen(Screen):
         self._packet_limit = self.app.capture_limit
         self._captura = Captura(
             self.app.packet_queue,
-            iface=None,
+            iface=self.app.capture_iface,
             bpf_filter=self._active_bpf or None,
         )
         self._captura.start()
@@ -152,7 +152,7 @@ class MainScreen(Screen):
         self._active_bpf = bpf
         self._captura = Captura(
             self.app.packet_queue,
-            iface=None,
+            iface=self.app.capture_iface,
             bpf_filter=bpf or None,
         )
         self._captura.start()

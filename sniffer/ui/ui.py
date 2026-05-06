@@ -14,6 +14,7 @@ class SnifferApp(App):
         self.bpf_filter = bpf_filter
         self.capture_mode = "live"
         self.capture_limit: int | None = None
+        self.capture_iface: str | None = None
 
     def on_mount(self):
         self.push_screen(SetupScreen())
