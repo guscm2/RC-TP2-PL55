@@ -14,7 +14,7 @@ class PacketTable(Widget):
             super().__init__()
             self.packet = packet
 
-    _COLS = ("#", "Time", "Proto", "Iface", "Src", "Dst", "Flags", "Size")
+    _COLS = ("#", "Tempo", "Protocolo", "Interface", "Origem", "Destino", "Flags", "Tamanho")
     _MAX_DISPLAY = 500
 
     def __init__(self, **kwargs):
@@ -32,7 +32,7 @@ class PacketTable(Widget):
 
     def on_mount(self) -> None:
         t = self.query_one(DataTable)
-        widths = {"#": 5, "Time": 14, "Proto": 8, "Iface": 10, "Src": 24, "Dst": 24, "Flags": 15, "Size": 8}
+        widths = {"#": 5, "Tempo": 14, "Protocolo": 11, "Interface": 12, "Origem": 24, "Destino": 24, "Flags": 15, "Tamanho": 9}
         for col in self._COLS:
             t.add_column(col, key=col, width=widths[col])
 

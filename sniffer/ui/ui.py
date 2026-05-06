@@ -18,8 +18,13 @@ class SnifferApp(App):
 
     def on_mount(self):
         if self.capture_limit is not None or self.bpf_filter:
-            from scapy.all import conf as scapy_conf
-            self.capture_iface = str(scapy_conf.iface)
+            from ui.widgets.interface_selector import get_interfaces
+            ifaces = get_interfaces()
+            non_lo = [i for i in ifaces if i != "lo"]
+            wireless = [i for i in non_lo if i.startswith("wl")]
+            self.capture_iface = (wireless[0] if wireless else
+                                  non_lo[0] if non_lo else
+                                  ifaces[0] if ifaces else "eth0")
             from ui.screens.main_screen import MainScreen
             self.push_screen(MainScreen())
         else:

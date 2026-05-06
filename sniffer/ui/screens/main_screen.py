@@ -37,7 +37,7 @@ class MainScreen(Screen):
         table = self.query_one(PacketTable)
         table.apply_filters(event.query, event.bpf)
 
-        new_bpf = event.bpf.strip()
+        new_bpf = event.bpf.strip().lower()
         if new_bpf != (self._active_bpf or ""):
             ok, err = validate_bpf(new_bpf)
             if ok:
@@ -62,6 +62,7 @@ class MainScreen(Screen):
             self.query_one("#bpf-input", Input).value = self._active_bpf
         self._fragment_groups: dict = {}
         self._stopped = False
+        self._limit_reached = False
         self._mode = self.app.capture_mode
         self._packet_limit = self.app.capture_limit
         self._captura = Captura(
@@ -83,7 +84,7 @@ class MainScreen(Screen):
     _PACKETS_PER_TICK = 50
 
     def _poll_queue(self) -> None:
-        if self._stopped:
+        if self._stopped or self._limit_reached:
             return
         table = self.query_one(PacketTable)
         for _ in range(self._PACKETS_PER_TICK):
@@ -107,6 +108,7 @@ class MainScreen(Screen):
                 self.app.log.error(f"parse error: {e}")
                 continue
             if self._packet_limit and self._packet_index >= self._packet_limit:
+                self._limit_reached = True
                 self._captura.pause()
                 self._update_title()
                 return
@@ -178,6 +180,7 @@ class MainScreen(Screen):
         if self._stopped:
             return
         if self._captura.is_paused():
+            self._limit_reached = False
             self._captura.resume()
         else:
             self._captura.pause()

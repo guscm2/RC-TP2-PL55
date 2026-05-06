@@ -15,7 +15,9 @@ def main():
         print("Erro: -c deve ser um número inteiro positivo.", file=sys.stderr)
         sys.exit(1)
 
-    ok, err = validate_bpf(args.filter)
+    bpf_filter = args.filter.lower()
+
+    ok, err = validate_bpf(bpf_filter)
     if not ok:
         print(f"Invalid BPF filter: {err}", file=sys.stderr)
         sys.exit(1)
@@ -23,7 +25,7 @@ def main():
     packet_queue = queue.Queue()
     app = SnifferApp(
         packet_queue=packet_queue,
-        bpf_filter=args.filter,
+        bpf_filter=bpf_filter,
         capture_limit=args.count,
     )
     app.run()
