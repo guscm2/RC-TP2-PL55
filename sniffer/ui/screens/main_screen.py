@@ -57,6 +57,9 @@ class MainScreen(Screen):
     def on_mount(self) -> None:
         self._packet_index = 0
         self._active_bpf = self.app.bpf_filter or ""
+        if self._active_bpf:
+            from textual.widgets import Input
+            self.query_one("#bpf-input", Input).value = self._active_bpf
         self._fragment_groups: dict = {}
         self._stopped = False
         self._mode = self.app.capture_mode
@@ -103,8 +106,9 @@ class MainScreen(Screen):
             except Exception as e:
                 self.app.log.error(f"parse error: {e}")
                 continue
-            if self._mode == "log" and self._packet_limit and self._packet_index >= self._packet_limit:
-                self.call_after_refresh(self.action_stop_capture)
+            if self._packet_limit and self._packet_index >= self._packet_limit:
+                self._captura.pause()
+                self._update_title()
                 return
 
     def action_export_pcap(self) -> None:

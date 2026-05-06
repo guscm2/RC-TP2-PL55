@@ -3,11 +3,12 @@ SNIFFER  := sniffer/main.py
 SRC      := sniffer
 
 FILTER   ?=
+COUNT    ?=
 
 .PHONY: run install check clean
 
 run:
-	sudo $(PYTHON) $(SNIFFER) $(if $(FILTER),-f "$(FILTER)",)
+	sudo $(PYTHON) $(SNIFFER) $(if $(FILTER),-f "$(FILTER)",) $(if $(COUNT),-c $(COUNT),)
 
 install:
 	sudo pip install scapy textual
@@ -36,3 +37,4 @@ check:
 clean:
 	sudo find $(SRC) -type d -name __pycache__ -exec rm -rf {} +
 	sudo find $(SRC) -name "*.pyc" -delete
+	sudo rm -rf captures

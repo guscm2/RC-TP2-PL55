@@ -27,7 +27,14 @@ class SetupScreen(Screen):
             yield Button("Iniciar Captura", id="setup-start", variant="success")
 
     def on_mount(self) -> None:
-        self.query_one("#setup-pkt-count", Input).display = False
+        pkt_input = self.query_one("#setup-pkt-count", Input)
+        cli_limit = self.app.capture_limit
+        if cli_limit is not None:
+            pkt_input.value = str(cli_limit)
+            pkt_input.display = True
+            self.query_one("#setup-mode", Select).value = "log"
+        else:
+            pkt_input.display = False
         self.query_one("#setup-error", Label).display = False
 
     def on_interface_selector_interface_changed(self, event: InterfaceSelector.InterfaceChanged) -> None:
