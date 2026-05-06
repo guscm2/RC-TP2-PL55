@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import subprocess
+from scapy.all import get_if_list
 from textual.app import ComposeResult
 from textual.widget import Widget
 from textual.widgets import Select
@@ -10,18 +10,7 @@ from textual.message import Message
 def get_interfaces() -> list[str]:
     """Devolve lista de interfaces de rede disponíveis no sistema."""
     try:
-        result = subprocess.run(
-            ["ip", "-o", "link", "show"],
-            capture_output=True, text=True
-        )
-        ifaces = []
-        for line in result.stdout.splitlines():
-            parts = line.split(":")
-            if len(parts) >= 2:
-                name = parts[1].strip()
-                if name != "lo":  # ignora loopback
-                    ifaces.append(name)
-        return ifaces if ifaces else ["eth0"]
+        return get_if_list() or ["eth0"]
     except Exception:
         return ["eth0"]
 
