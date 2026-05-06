@@ -2,8 +2,6 @@
 
 Network packet sniffer built with Python and Scapy for the Computer Networks course (2nd year).
 
-> **Status:** work in progress
-
 ---
 
 ## Requirements
@@ -54,9 +52,10 @@ The sniffer launches an interactive **Textual UI** with a live packet table and 
 - Interactive Textual TUI with live packet table and per-packet detail panel
 - Split layout: filter bar, packet table, detail panel
 - Color-coded protocol display: TCP, UDP, ICMP, ARP, DNS, HTTP, IPv4, IPv6
-- Protocol detection ordering: ARP > HTTP > DNS > ICMP > TCP > UDP > IPv4/IPv6
+- Protocol detection ordering: ARP > HTTP > DNS > ICMP > TCP > UDP > IPv4/IPv6; non-first IP fragments identified via IP proto field (e.g. fragmented ICMP labelled as `ICMP` instead of `IPv4`)
 - Source/destination IP and port; IPv6 src/dst shown correctly
 - TCP flag decoding (SYN, ACK, FIN, RST, PSH, URG)
+- IP fragmentation detection: first fragment shown as `FRAG-FIRST`, intermediate as `FRAG+<offset>B`, last as `FRAG-LAST+<offset>B` in the Flags column
 - DNS query name extraction
 - HTTP method, host and path extraction
 - Unified single-input filter bar — one field matches protocol, IP, or MAC (case-insensitive substring); separate BPF expression input with an Apply button

@@ -7,15 +7,6 @@ FilterBar Horizontal {
     height: 3;
 }
 
-InterfaceSelector {
-    width: 20;
-    min-width: 20;
-}
-
-InterfaceSelector Select {
-    width: 20;
-}
-
 FilterBar #query-input {
     width: 1fr;
 }
@@ -64,4 +55,43 @@ DetailPanel #detail-scroll {
     width: 12;
     min-width: 12;
     content-align: center middle;
+}
+
+SetupScreen {
+    align: center middle;
+}
+
+#setup-box {
+    width: 52;
+    height: auto;
+    padding: 2 4;
+    border: solid $primary;
+    background: $surface;
+}
+
+#setup-title {
+    text-align: center;
+    text-style: bold;
+    margin-bottom: 1;
+}
+
+#setup-subtitle {
+    margin-bottom: 1;
+}
+
+#setup-mode {
+    margin-bottom: 1;
+}
+
+#setup-pkt-count {
+    margin-bottom: 1;
+}
+
+#setup-error {
+    color: $error;
+    margin-bottom: 1;
+}
+
+#setup-start {
+    width: 100%;
 }

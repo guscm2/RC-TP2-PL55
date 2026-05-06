@@ -1,16 +1,17 @@
 import queue
 from textual.app import App
-from ui.screens.main_screen import MainScreen
+from ui.screens.setup_screen import SetupScreen
 
 class SnifferApp(App):
     CSS_PATH = "sniffer.tcss"
     TITLE = "Packet Sniffer"
 
-    def __init__(self, packet_queue: queue.Queue, iface=None, bpf_filter="", **kwargs):
+    def __init__(self, packet_queue: queue.Queue, bpf_filter="", **kwargs):
         super().__init__(**kwargs)
         self.packet_queue = packet_queue
-        self.iface = iface
         self.bpf_filter = bpf_filter
+        self.capture_mode = "live"
+        self.capture_limit: int | None = None
 
     def on_mount(self):
-        self.push_screen(MainScreen())
+        self.push_screen(SetupScreen())

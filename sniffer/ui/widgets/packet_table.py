@@ -12,7 +12,7 @@ class PacketTable(Widget):
             super().__init__()
             self.packet = packet
 
-    _COLS = ("#", "Time", "Proto", "Src", "Dst", "Flags", "Size")
+    _COLS = ("#", "Time", "Proto", "Iface", "Src", "Dst", "Flags", "Size")
     _MAX_DISPLAY = 500
 
     def __init__(self, **kwargs):
@@ -30,7 +30,7 @@ class PacketTable(Widget):
 
     def on_mount(self) -> None:
         t = self.query_one(DataTable)
-        widths = {"#": 5, "Time": 14, "Proto": 8, "Src": 24, "Dst": 24, "Flags": 15, "Size": 8}
+        widths = {"#": 5, "Time": 14, "Proto": 8, "Iface": 10, "Src": 24, "Dst": 24, "Flags": 15, "Size": 8}
         for col in self._COLS:
             t.add_column(col, key=col, width=widths[col])
 
@@ -68,6 +68,7 @@ class PacketTable(Widget):
             q = self._query.lower()
             if not (
                 q in pkt["proto"].lower()
+                or q in pkt.get("iface", "").lower()
                 or q in pkt["src"]
                 or q in pkt["dst"]
                 or q in pkt.get("src_mac", "").lower()
@@ -91,12 +92,16 @@ class PacketTable(Widget):
     def _add_row(self, pkt: dict) -> None:
         self.query_one(DataTable).add_row(
             str(pkt["index"]), pkt["time"], pkt["proto"],
+            pkt.get("iface", ""),
             pkt["src"], pkt["dst"], pkt["flags"], pkt["size"],
             key=str(pkt["index"]),
         )
 
     def get_raw_packets(self) -> list:
         return [p["raw_pkt"] for p in self._all if p.get("raw_pkt") is not None]
+
+    def get_all_packets(self) -> list[dict]:
+        return list(self._all)
 
     def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
         idx = int(event.row_key.value)

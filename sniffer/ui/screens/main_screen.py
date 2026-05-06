@@ -1,3 +1,4 @@
+import json
 import os
 import queue
 from datetime import datetime
@@ -8,16 +9,17 @@ from scapy.all import wrpcap
 from textual.app import ComposeResult
 from textual.screen import Screen
 from textual.widgets import Header, Footer, Label
+from ui.screens.summary_screen import SummaryScreen
 from ui.widgets.filter_bar import FilterBar
 from ui.widgets.packet_table import PacketTable
 from ui.widgets.detail_panel import DetailPanel
-from ui.widgets.interface_selector import InterfaceSelector
 
 
 class MainScreen(Screen):
     BINDINGS = [
         ("e", "export_pcap", "Export PCAP"),
         ("p", "toggle_pause", "Pause/Resume"),
+        ("q", "stop_capture", "Stop"),
     ]
 
     def compose(self) -> ComposeResult:
@@ -42,15 +44,6 @@ class MainScreen(Screen):
                 self._restart_capture(new_bpf)
 
     # ------------------------------------------------------------------
-    # Interface selection
-    # ------------------------------------------------------------------
-
-    def on_interface_selector_interface_changed(self, event) -> None:
-        """Reinicia a captura na nova interface selecionada."""
-        self.app.iface = event.iface
-        self._restart_capture(self._active_bpf)
-
-    # ------------------------------------------------------------------
     # Packet selection
     # ------------------------------------------------------------------
 
@@ -64,9 +57,12 @@ class MainScreen(Screen):
     def on_mount(self) -> None:
         self._packet_index = 0
         self._active_bpf = self.app.bpf_filter or ""
+        self._stopped = False
+        self._mode = self.app.capture_mode
+        self._packet_limit = self.app.capture_limit
         self._captura = Captura(
             self.app.packet_queue,
-            iface=self.app.iface,
+            iface=None,
             bpf_filter=self._active_bpf or None,
         )
         self._captura.start()
@@ -83,6 +79,8 @@ class MainScreen(Screen):
     _PACKETS_PER_TICK = 50
 
     def _poll_queue(self) -> None:
+        if self._stopped:
+            return
         table = self.query_one(PacketTable)
         for _ in range(self._PACKETS_PER_TICK):
             try:
@@ -97,6 +95,10 @@ class MainScreen(Screen):
                 self._packet_index += 1
             except Exception as e:
                 self.app.log.error(f"parse error: {e}")
+                continue
+            if self._mode == "log" and self._packet_limit and self._packet_index >= self._packet_limit:
+                self.call_after_refresh(self.action_stop_capture)
+                return
 
     def action_export_pcap(self) -> None:
         packets = self.query_one(PacketTable).get_raw_packets()
@@ -108,7 +110,38 @@ class MainScreen(Screen):
         wrpcap(filename, packets)
         self.notify(f"Exported {len(packets)} packets to {filename}")
 
+    def action_stop_capture(self) -> None:
+        if self._stopped:
+            return
+        self._stopped = True
+        self._captura.stop()
+        while not self.app.packet_queue.empty():
+            try:
+                self.app.packet_queue.get_nowait()
+            except queue.Empty:
+                break
+        packets = self.query_one(PacketTable).get_all_packets()
+        log_filename = None
+        if self._mode == "log" and packets:
+            log_filename = self._save_json(packets)
+        self._update_title()
+        self.app.push_screen(SummaryScreen(packets, log_filename=log_filename))
+
+    def _save_json(self, packets: list) -> str:
+        os.makedirs("captures", exist_ok=True)
+        filename = os.path.join("captures", f"capture_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json")
+        out = []
+        for p in packets:
+            entry = {k: v for k, v in p.items() if k != "raw_pkt"}
+            entry["layers"] = [{"name": l["name"], "fields": l["fields"]} for l in p.get("layers", [])]
+            out.append(entry)
+        with open(filename, "w") as f:
+            json.dump(out, f, indent=2)
+        return filename
+
     def _restart_capture(self, bpf: str) -> None:
+        if self._stopped:
+            return
         was_paused = self._captura.is_paused()
         self._captura.stop()
         while not self.app.packet_queue.empty():
@@ -119,17 +152,20 @@ class MainScreen(Screen):
         self._active_bpf = bpf
         self._captura = Captura(
             self.app.packet_queue,
-            iface=self.app.iface,
+            iface=None,
             bpf_filter=bpf or None,
         )
         self._captura.start()
         if was_paused:
             self._captura.pause()
+
     # ------------------------------------------------------------------
     # Pause/Resume controls
     # ------------------------------------------------------------------
 
     def action_toggle_pause(self) -> None:
+        if self._stopped:
+            return
         if self._captura.is_paused():
             self._captura.resume()
         else:
@@ -137,6 +173,13 @@ class MainScreen(Screen):
         self._update_title()
 
     def _update_title(self) -> None:
+        if self._stopped:
+            self.app.title = "Packet Sniffer - STOPPED"
+            try:
+                self.query_one("#capture-status", Label).update("[red]■ STOPPED[/red]")
+            except Exception:
+                pass
+            return
         paused = self._captura.is_paused()
         self.app.title = f"Packet Sniffer - {'PAUSED' if paused else 'CAPTURING'}"
         tag = "[yellow]⏸ PAUSED[/yellow]" if paused else "[green]● LIVE[/green]"
