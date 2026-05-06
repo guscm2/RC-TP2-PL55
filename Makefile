@@ -34,5 +34,5 @@ check:
 	@echo "All files OK"
 
 clean:
-	find $(SRC) -type d -name __pycache__ -exec rm -rf {} +
-	find $(SRC) -name "*.pyc" -delete
+	sudo find $(SRC) -type d -name __pycache__ -exec rm -rf {} +
+	sudo find $(SRC) -name "*.pyc" -delete
