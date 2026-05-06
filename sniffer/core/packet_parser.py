@@ -90,17 +90,129 @@ def parse_packet(pkt, index: int) -> dict:
 
     _LAYER_DISPLAY_NAMES = {"IP": "IPv4"}
 
+    _FIELD_TRANSLATIONS = {
+        "Ether": {
+            "dst":      "Destino MAC",
+            "src":      "Origem MAC",
+            "type":     "Tipo",
+        },
+        "IP": {
+            "version":  "Versão",
+            "ihl":      "Comprimento do Cabeçalho",
+            "tos":      "Tipo de Serviço",
+            "len":      "Comprimento Total",
+            "id":       "Identificação",
+            "flags":    "Flags",
+            "frag":     "Deslocamento de Fragmento",
+            "ttl":      "Tempo de Vida",
+            "proto":    "Protocolo",
+            "chksum":   "Checksum",
+            "src":      "Origem",
+            "dst":      "Destino",
+        },
+        "IPv6": {
+            "version":  "Versão",
+            "tc":       "Classe de Tráfego",
+            "fl":       "Rótulo de Fluxo",
+            "plen":     "Comprimento do Payload",
+            "nh":       "Próximo Cabeçalho",
+            "hlim":     "Limite de Saltos",
+            "src":      "Origem",
+            "dst":      "Destino",
+        },
+        "TCP": {
+            "sport":    "Porta de Origem",
+            "dport":    "Porta de Destino",
+            "seq":      "Número de Sequência",
+            "ack":      "Número de Reconhecimento",
+            "dataofs":  "Tamanho do Cabeçalho",
+            "reserved": "Reservado",
+            "flags":    "Flags",
+            "window":   "Janela",
+            "chksum":   "Checksum",
+            "urgptr":   "Ponteiro de Urgência",
+        },
+        "UDP": {
+            "sport":    "Porta de Origem",
+            "dport":    "Porta de Destino",
+            "len":      "Comprimento",
+            "chksum":   "Checksum",
+        },
+        "ICMP": {
+            "type":     "Tipo",
+            "code":     "Código",
+            "chksum":   "Checksum",
+            "id":       "Identificação",
+            "seq":      "Número de Sequência",
+        },
+        "ICMPv6Unknown": {
+            "type":     "Tipo",
+            "code":     "Código",
+            "cksum":    "Checksum",
+        },
+        "ARP": {
+            "hwtype":   "Tipo de Hardware",
+            "ptype":    "Tipo de Protocolo",
+            "hwlen":    "Comprimento do Endereço Hardware",
+            "plen":     "Comprimento do Endereço Protocolo",
+            "op":       "Operação",
+            "hwsrc":    "MAC de Origem",
+            "psrc":     "IP de Origem",
+            "hwdst":    "MAC de Destino",
+            "pdst":     "IP de Destino",
+        },
+        "DNS": {
+            "id":       "Identificação",
+            "qr":       "Consulta/Resposta",
+            "opcode":   "Opcode",
+            "aa":       "Autoridade",
+            "tc":       "Truncado",
+            "rd":       "Recursão Desejada",
+            "ra":       "Recursão Disponível",
+            "z":        "Reservado",
+            "rcode":    "Código de Resposta",
+            "qdcount":  "Perguntas",
+            "ancount":  "Respostas",
+            "nscount":  "Registos de Autoridade",
+            "arcount":  "Registos Adicionais",
+        },
+        "HTTPRequest": {
+            "Method":           "Método",
+            "Path":             "Caminho",
+            "Http_Version":     "Versão HTTP",
+            "Host":             "Host",
+            "User_Agent":       "Agente de Utilizador",
+            "Accept":           "Aceita",
+            "Accept_Encoding":  "Codificação Aceite",
+            "Accept_Language":  "Idioma Aceite",
+            "Connection":       "Conexão",
+            "Content_Type":     "Tipo de Conteúdo",
+            "Content_Length":   "Comprimento do Conteúdo",
+        },
+        "HTTPResponse": {
+            "Http_Version":     "Versão HTTP",
+            "Status_Code":      "Código de Estado",
+            "Reason_Phrase":    "Mensagem de Estado",
+            "Content_Type":     "Tipo de Conteúdo",
+            "Content_Length":   "Comprimento do Conteúdo",
+            "Connection":       "Conexão",
+        },
+    }
+
     layers = []
     current = pkt
     while current:
         layer_name = current.__class__.__name__
         display_name = _LAYER_DISPLAY_NAMES.get(layer_name, layer_name)
+        layer_translations = _FIELD_TRANSLATIONS.get(layer_name, {})
         fields = {}
         for k, v in current.fields.items():
             try:
-                fields[k] = current.get_field(k).i2repr(current, v)
+                val = current.get_field(k).i2repr(current, v)
             except Exception:
-                fields[k] = str(v)
+                val = str(v)
+            translated_key = layer_translations.get(k, k)
+            fields[translated_key] = val
         layers.append({"name": layer_name, "display_name": display_name, "fields": fields})
         current = current.payload if current.payload else None
         if isinstance(current, Raw) or current is None:
