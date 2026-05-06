@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import queue
 from textual.app import App
 from ui.screens.setup_screen import SetupScreen

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from collections import defaultdict
 from textual.app import ComposeResult
 from textual.screen import Screen
