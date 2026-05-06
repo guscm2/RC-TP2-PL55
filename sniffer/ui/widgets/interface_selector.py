@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import subprocess
 from textual.app import ComposeResult
 from textual.widget import Widget
