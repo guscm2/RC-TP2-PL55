@@ -27,7 +27,7 @@ São necessários privilégios de root/sudo para capturar pacotes em modo raw.
 | Comando | Descrição |
 |---------|-----------|
 | `make run` | Executa e abre o ecrã de configuração |
-| `make run FILTER="tcp port 443"` | Executa com um filtro BPF pré-definido |
+| `make run FILTER="tcp port 443"` | Executa com um filtro BPF pré-definido ou filtrar a captura por protocolo |
 | `make run COUNT=100` | Executa em Log mode com limite de pacotes pré-definido |
 | `make install` | Instala as dependências |
 | `make check` | Verifica a sintaxe de todos os ficheiros fonte |
@@ -70,7 +70,7 @@ Ecrã de resumo:
 
 | Tecla | Ação |
 |-------|------|
-| `q` / `Q` | Sair da aplicação |
+| `Ctrl + Q` | Sair da aplicação |
 
 ---
 
