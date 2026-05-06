@@ -1,12 +1,13 @@
+
 # RC TP2 — Packet Sniffer (PL55)
 
-Network packet sniffer built with Python and Scapy for the Computer Networks course (2nd year).
+Sniffer de pacotes de rede desenvolvido em Python e Scapy para a unidade curricular de Redes de Computadores (2º ano).
 
-> **Status:** work in progress
+> **Estado:** em desenvolvimento
 
 ---
 
-## Requirements
+## Requisitos
 
 - Python 3.8+
 - [Scapy](https://scapy.net/)
@@ -14,60 +15,60 @@ Network packet sniffer built with Python and Scapy for the Computer Networks cou
 
 ```bash
 make install
-# or manually: pip install scapy textual
+# ou manualmente: pip install scapy textual
 ```
 
-Root/sudo privileges are required to capture raw packets.
+São necessários privilégios de root/sudo para capturar pacotes em modo raw.
 
 ---
 
-## Usage
+## Utilização
 
-### With Make (recommended)
+### Com Make (recomendado)
 
-| Command | Description |
-|---------|-------------|
-| `make run` | Run on default interface (`eth0`) |
-| `make run IFACE=wlan0` | Run on a specific interface |
-| `make run IFACE=eth0 FILTER="tcp port 443"` | Run with a BPF filter |
-| `make install` | Install dependencies |
-| `make check` | Syntax-check all source files |
-| `make clean` | Remove `__pycache__` and `.pyc` files |
+| Comando | Descrição |
+|---------|-----------|
+| `make run` | Executa na interface padrão (`eth0`) |
+| `make run IFACE=wlan0` | Executa numa interface específica |
+| `make run IFACE=eth0 FILTER="tcp port 443"` | Executa com um filtro BPF |
+| `make install` | Instala as dependências |
+| `make check` | Verifica a sintaxe de todos os ficheiros fonte |
+| `make clean` | Remove ficheiros `__pycache__` e `.pyc` |
 
-### Manually
+### Manualmente
 
 ```bash
-sudo python3 sniffer/main.py [options]
+sudo python3 sniffer/main.py [opções]
 ```
 
-| Option | Description |
-|--------|-------------|
-| `-i`, `--iface` | Network interface to listen on (e.g. `eth0`, `wlan0`). Defaults to the system default. |
-| `-f`, `--filter` | BPF filter string (e.g. `tcp port 80`, `udp`, `icmp`). |
+| Opção | Descrição |
+|-------|-----------|
+| `-i`, `--iface` | Interface de rede a escutar (ex: `eth0`, `wlan0`). Por defeito usa a interface do sistema. |
+| `-f`, `--filter` | Filtro BPF (ex: `tcp port 80`, `udp`, `icmp`). |
 
-The sniffer launches an interactive **Textual UI** with a live packet table and per-packet detail panel. Use **Ctrl+C** or **q** to quit.
-
----
-
-## Current Features
-
-- Interactive Textual TUI with live packet table and per-packet detail panel
-- Split layout: filter bar, packet table, detail panel
-- Color-coded protocol display: TCP, UDP, ICMP, ARP, DNS, HTTP, IPv4, IPv6
-- Protocol detection ordering: ARP > HTTP > DNS > ICMP > TCP > UDP > IPv4/IPv6
-- Source/destination IP and port; IPv6 src/dst shown correctly
-- TCP flag decoding (SYN, ACK, FIN, RST, PSH, URG)
-- DNS query name extraction
-- HTTP method, host and path extraction
-- Unified single-input filter bar — one field matches protocol, IP, or MAC (case-insensitive substring); separate BPF expression input with an Apply button
-- Debounced filter with 250 ms delay so typing stays responsive during live capture
-- Display capped at the 500 most recent matching packets
-- BPF filter validation at startup via `tcpdump -d`; per-packet BPF matching via libpcap offline filtering (`pcap_offline_filter`)
-- BPF filter can be updated at runtime from the UI; capture thread restarts with the new kernel-level filter
+O sniffer abre uma **interface Textual** interativa com uma tabela de pacotes em tempo real e um painel de detalhes por pacote. Use **Ctrl+C** ou **q** para sair.
 
 ---
 
-## Project Structure
+## Funcionalidades Atuais
+
+- Interface Textual TUI interativa com tabela de pacotes em tempo real e painel de detalhes
+- Layout dividido: barra de filtros, tabela de pacotes, painel de detalhes
+- Protocolos com cores: TCP, UDP, ICMP, ARP, DNS, HTTP, IPv4, IPv6
+- Ordem de deteção de protocolos: ARP > HTTP > DNS > ICMP > TCP > UDP > IPv4/IPv6
+- IP e porta de origem/destino; src/dst IPv6 apresentados corretamente
+- Descodificação de flags TCP (SYN, ACK, FIN, RST, PSH, URG)
+- Extração do nome de queries DNS
+- Extração de método, host e caminho HTTP
+- Barra de filtro unificada — um campo filtra por protocolo, IP ou MAC (substring sem distinção de maiúsculas/minúsculas); campo separado para expressão BPF com botão Aplicar
+- Filtro com debounce de 250 ms para manter a resposta fluída durante a captura
+- Apresentação limitada aos 500 pacotes correspondentes mais recentes
+- Validação do filtro BPF no arranque via `tcpdump -d`; filtragem BPF por pacote via libpcap offline (`pcap_offline_filter`)
+- Filtro BPF pode ser atualizado em tempo real pela UI; o processo de captura reinicia com o novo filtro ao nível do kernel
+
+---
+
+## Estrutura do Projeto
 
 ```
 .
@@ -75,17 +76,17 @@ The sniffer launches an interactive **Textual UI** with a live packet table and 
 ├── sniffer/
 │   ├── main.py
 │   ├── core/
-│   │   ├── captura.py        # packet capture thread (Scapy)
-│   │   ├── filter.py         # BPF filter validation
-│   │   └── packet_parser.py  # raw packet → dict
+│   │   ├── captura.py        # thread de captura de pacotes (Scapy)
+│   │   ├── filter.py         # validação de filtros BPF
+│   │   └── packet_parser.py  # pacote raw → dict
 │   └── ui/
-│       ├── ui.py             # Textual App entry point
-│       ├── sniffer.tcss      # layout and styling
+│       ├── ui.py             # ponto de entrada da app Textual
+│       ├── sniffer.tcss      # layout e estilos
 │       ├── screens/
 │       │   └── main_screen.py
 │       └── widgets/
-│           ├── filter_bar.py   # unified filter input (protocol / IP / MAC) + BPF input
-│           ├── packet_table.py # live packet list (DataTable)
-│           └── detail_panel.py # per-packet layer tree
+│           ├── filter_bar.py   # filtro unificado (protocolo / IP / MAC) + filtro BPF
+│           ├── packet_table.py # lista de pacotes em tempo real (DataTable)
+│           └── detail_panel.py # árvore de camadas por pacote
 └── README.md
 ```
