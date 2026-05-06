@@ -4,12 +4,7 @@ import ctypes
 import subprocess
 
 
-# ---------------------------------------------------------------------------
-# BPF validation (used at startup / by the UI before applying a new filter)
-# ---------------------------------------------------------------------------
-
 def validate_bpf(filter_str: str) -> tuple[bool, str]:
-    """Returns (is_valid, error_message)."""
     if not filter_str.strip():
         return True, ""
     try:
@@ -27,10 +22,6 @@ def validate_bpf(filter_str: str) -> tuple[bool, str]:
     except Exception as e:
         return False, str(e)
 
-
-# ---------------------------------------------------------------------------
-# Per-packet BPF matching via libpcap
-# ---------------------------------------------------------------------------
 
 class _BpfInsn(ctypes.Structure):
     _fields_ = [
@@ -75,8 +66,6 @@ _libpcap = _load_libpcap()
 
 
 class BpfMatcher:
-    """Compiles a BPF expression once and tests individual packets against it."""
-
     def __init__(self, expression: str):
         self._expression = expression
         self._prog: _BpfProgram | None = None
@@ -84,12 +73,12 @@ class BpfMatcher:
         if _libpcap and expression.strip():
             self._prog = _BpfProgram()
             ret = _libpcap.pcap_compile_nopcap(
-                65535,               # snaplen
-                1,                   # DLT_EN10MB (Ethernet)
+                65535,
+                1,
                 ctypes.byref(self._prog),
                 expression.encode(),
-                1,                   # optimize
-                0xFFFFFFFF,          # netmask (unknown)
+                1,
+                0xFFFFFFFF,
             )
             self._valid = ret == 0
 
@@ -98,11 +87,6 @@ class BpfMatcher:
         return self._valid
 
     def matches(self, raw_bytes: bytes) -> bool:
-        """Return True if *raw_bytes* passes the compiled BPF filter.
-
-        Falls back to True (no filtering) when libpcap is unavailable or the
-        expression failed to compile.
-        """
         if not self._valid or self._prog is None or _libpcap is None:
             return True
         hdr = _PcapPkthdr()

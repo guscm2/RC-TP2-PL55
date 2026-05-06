@@ -244,5 +244,5 @@ def parse_packet(pkt, index: int) -> dict:
         "fragment_offset":  fragment_offset,
         "is_last_fragment": is_last_fragment,
         "fragment_proto":   fragment_proto,
-        "fragment_siblings": [],  # populated by main_screen after parsing
+        "fragment_siblings": [],
     }

@@ -29,10 +29,6 @@ class MainScreen(Screen):
         yield DetailPanel()
         yield Footer()
 
-    # ------------------------------------------------------------------
-    # Filter handling
-    # ------------------------------------------------------------------
-
     def on_filter_bar_filter_changed(self, event: FilterBar.FilterChanged) -> None:
         table = self.query_one(PacketTable)
         table.apply_filters(event.query, event.bpf)
@@ -43,16 +39,8 @@ class MainScreen(Screen):
             if ok:
                 self._restart_capture(new_bpf)
 
-    # ------------------------------------------------------------------
-    # Packet selection
-    # ------------------------------------------------------------------
-
     def on_packet_table_packet_selected(self, event: PacketTable.PacketSelected) -> None:
         self.query_one(DetailPanel).show_packet(event.packet)
-
-    # ------------------------------------------------------------------
-    # Lifecycle
-    # ------------------------------------------------------------------
 
     def on_mount(self) -> None:
         self._packet_index = 0
@@ -76,10 +64,6 @@ class MainScreen(Screen):
 
     def on_unmount(self) -> None:
         self._captura.stop()
-
-    # ------------------------------------------------------------------
-    # Internal helpers
-    # ------------------------------------------------------------------
 
     _PACKETS_PER_TICK = 50
 
@@ -171,10 +155,6 @@ class MainScreen(Screen):
         self._captura.start()
         if was_paused:
             self._captura.pause()
-
-    # ------------------------------------------------------------------
-    # Pause/Resume controls
-    # ------------------------------------------------------------------
 
     def action_toggle_pause(self) -> None:
         if self._stopped:

@@ -53,7 +53,6 @@ class PacketTable(Widget):
         query = self._pending_query
         bpf = self._pending_bpf
         self._query = query
-        # Recompile BPF only when the expression changes
         if bpf != self._bpf:
             self._bpf = bpf
             self._bpf_matcher = BpfMatcher(bpf) if bpf.strip() else None
@@ -65,7 +64,6 @@ class PacketTable(Widget):
             self._add_row(pkt)
 
     def _matches(self, pkt: dict) -> bool:
-        # --- Query filter (case-insensitive substring across proto/IP/MAC) ---
         if self._query:
             q = self._query.lower()
             if not (
@@ -78,7 +76,6 @@ class PacketTable(Widget):
             ):
                 return False
 
-        # --- BPF expression filter (applied via libpcap offline matching) ---
         if self._bpf_matcher is not None:
             raw_pkt = pkt.get("raw_pkt")
             if raw_pkt is not None:
@@ -87,7 +84,7 @@ class PacketTable(Widget):
                     if not self._bpf_matcher.matches(raw_bytes):
                         return False
                 except Exception:
-                    pass  # on error, keep the packet visible
+                    pass
 
         return True
 

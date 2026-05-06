@@ -8,7 +8,7 @@ class Captura:
         self.iface = iface
         self.bpf_filter = bpf_filter
         self.stop_event = threading.Event()
-        self.pause_event = threading.Event()  # When set, capture is paused
+        self.pause_event = threading.Event()
         self.thread = threading.Thread(target=self._run, daemon=True)
 
     def start(self):
@@ -25,7 +25,6 @@ class Captura:
         self.pause_event.clear()
 
     def is_paused(self) -> bool:
-        """Check if capture is currently paused."""
         return self.pause_event.is_set()
 
     def _run(self):
@@ -43,9 +42,5 @@ class Captura:
             self.packet_queue.put(RuntimeError(f"Captura failed: {e}"))
 
     def _packet_callback(self, pkt):
-        """Callback for each captured packet. Respects pause state."""
         if not self.pause_event.is_set():
             self.packet_queue.put(pkt)
-        else:
-            # Silently drop packet while paused
-            pass

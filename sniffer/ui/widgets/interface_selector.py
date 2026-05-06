@@ -8,7 +8,6 @@ from textual.message import Message
 
 
 def get_interfaces() -> list[str]:
-    """Devolve lista de interfaces de rede disponíveis no sistema."""
     try:
         return get_if_list() or ["eth0"]
     except Exception:
