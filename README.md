@@ -3,8 +3,6 @@
 
 Sniffer de pacotes de rede desenvolvido em Python e Scapy para a unidade curricular de Redes de Computadores (2º ano).
 
-> **Estado:** em desenvolvimento
-
 ---
 
 ## Requisitos
